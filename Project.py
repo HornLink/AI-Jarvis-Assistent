@@ -1,3 +1,4 @@
+# This Project.py file is the main project file, you can run this project on your desktop by running this file.
 # Press ctrl+f and search "Change this" for required changes while installing the project
 
 import cv2
