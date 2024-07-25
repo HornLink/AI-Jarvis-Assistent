@@ -1,0 +1,10 @@
+opencv-python
+threading
+pyttsx3
+SpeechRecognition
+google-generativeai
+requests
+webbrowser
+pytesseract
+python-dotenv
+Flask
