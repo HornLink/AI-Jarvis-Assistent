@@ -1,3 +1,6 @@
+# This server.py file is server to use this project anywhere like Mobile app, Web browser, Desktop app, etc.
+# Press ctrl+f and search "Change this" for required changes while installing the project
+
 from flask import Flask, render_template, Response
 import cv2
 import threading
