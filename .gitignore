@@ -1,17 +1,2 @@
 .env
 Tesseract-OCR/
-Android-APP/AR_Assistant/.iml
-Android-APP/AR_Assistant/.gradle
-Android-APP/AR_Assistant/local.properties
-Android-APP/AR_Assistant/.idea/caches
-Android-APP/AR_Assistant/.idea/libraries
-Android-APP/AR_Assistant/.idea/modules.xml
-Android-APP/AR_Assistant/.idea/workspace.xml
-Android-APP/AR_Assistant/.idea/navEditor.xml
-Android-APP/AR_Assistant/.idea/assetWizardSettings.xml
-Android-APP/AR_Assistant/.DS_Store
-Android-APP/AR_Assistant/build
-Android-APP/AR_Assistant/captures
-Android-APP/AR_Assistant/.externalNativeBuild
-Android-APP/AR_Assistant/.cxx
-Android-APP/AR_Assistant/local.properties
