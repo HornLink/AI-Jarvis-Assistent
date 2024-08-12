@@ -21,9 +21,10 @@ genai_api_key = os.getenv("GENAI_API_KEY") # replace with your own google's gena
 weather_app_id = os.getenv("WEATHER_APP_ID") # replace with your own open weather map api key
 cascade_path = 'C:\\Users\\tejas\\GitHub\\Augmented_Reality_Assistant\\haarcascade_frontalface_default.xml' # replace with your own haarcascade_frontalface_default.xml path
 tesseract_path = "C:\\Users\\tejas\\GitHub\\Augmented_Reality_Assistant\\Tesseract-OCR\\tesseract.exe" # replace with your own tesseract.exe path
-external_camera = 'http://192.168.246.140:8080/video' # remove this line if you dont have an external camera
+external_camera = os.getenv("EXTERNAL-CAMERA") # replace with your own external camera path, if you don't have external camera then remove this line
+host = os.getenv("HOST") # replace this with host ip address (example: localhost)
 laptop_camera = 0
-camera = laptop_camera
+camera = external_camera
 
 app = Flask(__name__)
 
@@ -368,4 +369,4 @@ if __name__ == '__main__':
     thread2.start()
 
 
-    app.run(host="127.0.0.1", port=5000) # You can change the host and port as needed
+    app.run(host= host, port=5000) # You can change the host and port as needed
