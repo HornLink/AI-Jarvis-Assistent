@@ -1,5 +1,4 @@
 opencv-python
-threading
 pyttsx3
 SpeechRecognition
 google-generativeai
