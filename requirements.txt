@@ -3,7 +3,6 @@ pyttsx3
 SpeechRecognition
 google-generativeai
 requests
-webbrowser
 pytesseract
 python-dotenv
 Flask

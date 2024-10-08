@@ -2,6 +2,7 @@
 # Press ctrl+f and search "Change this" for required changes while installing the project
 
 import cv2
+from cvzone.HandTrackingModule import HandDetector
 import threading
 import pyttsx3 as pt3
 import speech_recognition as sr
@@ -23,32 +24,9 @@ tesseract_path = "C:\\Users\\tejas\\GitHub\\Augmented_Reality_Assistant\\Tessera
 external_camera = os.getenv("EXTERNAL-CAMERA") # replace with your own external camera path, if you don't have external camera then remove this line
 laptop_camera = 0
 camera = laptop_camera
-
+detector = HandDetector(detectionCon=0.8, maxHands=2)  # Track both hands
 
 genai.configure(api_key = genai_api_key)
-
-#assistant animation
-
-#location
-location_data = requests.get('http://ipinfo.io').json()
-city = location_data['city']
-region = location_data['region']
-loc = str(f"Loc: {city}, {region}")
-coordinates = str(f"Coordinates: {location_data['loc']}")
-
-#weather program
-response = requests.get(f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={weather_app_id}")
-data = response.json ()
-temp = "Temperature: " + str(int(data["main"]["temp"]-273.15)) + "c"
-
-
-#face detection
-face_cascade = cv2.CascadeClassifier(cascade_path)
-
-#text detection
-td.tesseract_cmd = tesseract_path
-
-
 
 # graphical program condition
 frame_design = True
@@ -63,7 +41,13 @@ face_detection = True
 caption = ""
 rectangle_program = False
 
+# Graphical square with Hand Interaction
+square = False
+draw = False
+square_start = (None, None)
+square_end = (None, None)
 
+#server connection
 google_recognize_server_connection = False
 openai_server_connection = False
 
@@ -72,6 +56,36 @@ frame = None
 main_frame = None
 td_x, td_y, td_w, td_h = None, None, None, None
 fd_x, fd_y, fd_w, fd_h = None, None, None, None
+
+
+#assistant animation
+
+#location
+try:
+    location_data = requests.get('http://ipinfo.io').json()
+    city = location_data['city']
+    region = location_data['region']
+    loc = str(f"Loc: {city}, {region}")
+    coordinates = str(f"Coordinates: {location_data['loc']}")
+except Exception as e:
+    print(e)
+    location = False
+
+#weather program
+try:
+    response = requests.get(f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={weather_app_id}")
+    data = response.json ()
+    temp = "Temperature: " + str(int(data["main"]["temp"]-273.15)) + "c"
+except Exception as e:
+    print(e)
+    weather = False
+
+
+#face detection
+face_cascade = cv2.CascadeClassifier(cascade_path)
+
+#text detection
+td.tesseract_cmd = tesseract_path
      
 def display():
     global frame
@@ -102,6 +116,10 @@ def display():
     thread5 = threading.Thread(target=is_connected)
     thread5.start()
 
+    thread6 = threading.Thread(target=hand_tracking)
+    thread6.start()
+
+
     global x,y,w,h
 
     circle_animation = 0
@@ -113,6 +131,7 @@ def display():
 
     while True:
             success, frame = cap.read()
+            frame = cv2.flip(frame, 1)
             height, width = frame.shape[:2]
             
             x, y, w, h = left(10), top(20), left(90), top(80)
@@ -198,6 +217,10 @@ def display():
                 except:
                     pass
 
+            if square:
+                img = cv2.rectangle(frame, square_start, square_end, (255, 0, 0), 2)
+                 
+
             cv2.imshow('frame', frame)
 
             if cv2.waitKey(1) == ord('q'):
@@ -206,6 +229,52 @@ def display():
     cap.release()
     cv2.destroyAllWindows()  
 
+def hand_tracking():
+     global frame, square, draw, square_start, square_end
+     while True:
+        try:  # Add error handling
+            current_frame = frame.copy()  # Create a copy of the frame
+            if current_frame is not None:
+                hands, img = detector.findHands(current_frame)  # Use the copy instead
+                if hands:
+                    hand = hands[0]
+                    lmList = hand["lmList"]
+                    indexFingerTip = lmList[8]  # Index of Index Finger
+                    thumbTip = lmList[4]    # Index of Thumb
+
+                    # Draw square if thumbTip & indexFingerTip is touched
+                    # if again thumbTip & indexFingerTip is touched check for is the user trying streach the point of the square
+                    if draw:
+                        # Bottom-right cornor
+                        if abs(thumbTip[0] - indexFingerTip[0]) < 15 and abs(thumbTip[1] - indexFingerTip[1]) < 15 and abs(square_end[0] - indexFingerTip[0]) < 35 and abs(square_end[1] - indexFingerTip[1]) < 35:
+                            square_end = (indexFingerTip[0] - 15, indexFingerTip[1] - 15)
+
+                        # Top-left cornor
+                        if abs(thumbTip[0] - indexFingerTip[0]) < 15 and abs(thumbTip[1] - indexFingerTip[1]) < 15 and abs(square_start[0] - indexFingerTip[0]) < 35 and abs(square_start[1] - indexFingerTip[1]) < 35:
+                            square_start = (indexFingerTip[0] + 15, indexFingerTip[1] + 15)
+
+                        # Top-right cornor
+                        if abs(thumbTip[0] - indexFingerTip[0]) < 15 and abs(thumbTip[1] - indexFingerTip[1]) < 15 and abs(square_end[0] - indexFingerTip[0]) < 35 and abs(square_start[1] - indexFingerTip[1]) < 35:
+                            square_end = (indexFingerTip[0] - 15, square_end[1])
+                            square_start = (square_start[0], indexFingerTip[1] + 15)
+
+                        # Bottom-left cornor
+                        if abs(thumbTip[0] - indexFingerTip[0]) < 15 and abs(thumbTip[1] - indexFingerTip[1]) < 15 and abs(square_start[0] - indexFingerTip[0]) < 35 and abs(square_end[1] - indexFingerTip[1]) < 35:
+                            square_start = (indexFingerTip[0] + 15, square_start[1])
+                            square_end = (square_end[0], indexFingerTip[1] - 15)
+                            
+                    elif not draw:
+                        # create square around Tip Touch
+                        if abs(thumbTip[0] - indexFingerTip[0]) < 15 and abs(thumbTip[1] - indexFingerTip[1]) < 15:
+                            square = True
+                            square_start = (indexFingerTip[0] - 50, indexFingerTip[1] - 25)
+                            square_end = (indexFingerTip[0] + 50, indexFingerTip[1] + 25)
+                        elif square:
+                            draw = True
+
+
+        except Exception as e:
+            pass
 
 def text_detection_function():
     global detected_text
