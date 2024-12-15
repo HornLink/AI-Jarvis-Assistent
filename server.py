@@ -3,6 +3,7 @@
 
 from flask import Flask, render_template, Response
 import cv2
+from cvzone.HandTrackingModule import HandDetector
 import threading
 import speech_recognition as sr
 import pyttsx3 as pt3
@@ -25,6 +26,7 @@ external_camera = os.getenv("EXTERNAL-CAMERA") # replace with your own external 
 host = os.getenv("HOST") # replace this with host ip address (example: localhost)
 laptop_camera = 0
 camera = external_camera
+detector = HandDetector(detectionCon=0.8, maxHands=1)  # Track only one hand
 
 app = Flask(__name__)
 
@@ -94,6 +96,9 @@ def display():
 
     thread5 = threading.Thread(target=is_connected)
     thread5.start()
+
+    thread6 = threading.Thread(target=hand_tracking)
+    thread6.start()
 
     global x,y,w,h
 
@@ -193,7 +198,22 @@ def display():
 
             yield (b'--frame\r\n'
                     b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-            
+
+def hand_tracking():
+     global frame
+     while True:
+        if frame is not None:
+            hands, frame = detector.findHands(frame)
+            if hands:
+                hand = hands[0]
+                lmList = hand["lmList"]  # List of 21 landmarks points
+                indexFingerTip = lmList[8] # Index finger tip (landmark 8)
+                thumbTip = lmList[4]  # Thumb tip (landmark 4)
+
+                # Print the coordinates of the index finger tip
+                print(f"Index Finger Coordinates: x={indexFingerTip[0]}, y={indexFingerTip[1]}")
+                print(f"Thumb Finger Coordinates: x={thumbTip[0]}, y={indexFingerTip[1]}")
+
 def text_detection_function():
     global detected_text
     while True:
