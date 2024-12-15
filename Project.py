@@ -272,7 +272,6 @@ def hand_tracking():
                         elif square:
                             draw = True
 
-
         except Exception as e:
             pass
 
