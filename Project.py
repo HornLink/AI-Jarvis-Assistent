@@ -24,11 +24,11 @@ tesseract_path = "C:\\Users\\tejas\\GitHub\\Augmented_Reality_Assistant\\Tessera
 external_camera = os.getenv("EXTERNAL-CAMERA") # replace with your own external camera path, if you don't have external camera then remove this line
 laptop_camera = 0
 camera = laptop_camera
-detector = HandDetector(detectionCon=0.8, maxHands=2)  # Track both hands
+detector = HandDetector(detectionCon=0.8, maxHands=1)  # Track only one hand
 
 genai.configure(api_key = genai_api_key)
 
-# graphical program condition
+# graphical program ON or OFF
 frame_design = True
 caption = True
 mic_animation = False
@@ -49,11 +49,12 @@ square_end = (None, None)
 
 #server connection
 google_recognize_server_connection = False
-openai_server_connection = False
+genai_server_connection = False
 
 # graphical public variables
 frame = None
 main_frame = None
+square_frame = None
 td_x, td_y, td_w, td_h = None, None, None, None
 fd_x, fd_y, fd_w, fd_h = None, None, None, None
 
@@ -88,8 +89,7 @@ face_cascade = cv2.CascadeClassifier(cascade_path)
 td.tesseract_cmd = tesseract_path
      
 def display():
-    global frame
-    global main_frame
+    global frame, main_frame, square_frame
 
     cap = cv2.VideoCapture(camera)
     cv2.namedWindow('frame', cv2.WINDOW_NORMAL)
@@ -131,7 +131,6 @@ def display():
 
     while True:
             success, frame = cap.read()
-            frame = cv2.flip(frame, 1)
             height, width = frame.shape[:2]
             
             x, y, w, h = left(10), top(20), left(90), top(80)
@@ -153,8 +152,6 @@ def display():
                 RSy = 260
                 REx = 260
                 REy = 260
-
-
 
             if frame_design:
                 main_frame = cv2.rectangle(frame, (left(10), top(20)), (left(90), top(80)), (255, 0, 0), 1)
@@ -187,7 +184,7 @@ def display():
                 if internet_connection_status:
                     if google_recognize_server_connection:
                         cv2.circle(img, (left(94), top(32)), 1, (0, 0, 255), 2)
-                    if openai_server_connection:
+                    if genai_server_connection:
                         cv2.circle(img, (left(96), top(28)), 1, (0, 0, 255), 2)
                     cv2.circle(img, (left(95), top(30)), circle_animation, (255, 0, 0), 2)
                     cv2.circle(img, (left(95), top(30)), 1, (255, 0, 0), 2)
@@ -218,7 +215,7 @@ def display():
                     pass
 
             if square:
-                img = cv2.rectangle(frame, square_start, square_end, (255, 0, 0), 2)
+                square_frame = cv2.rectangle(frame, square_start, square_end, (255, 0, 0), 1)
                  
 
             cv2.imshow('frame', frame)
@@ -279,7 +276,23 @@ def text_detection_function():
     global detected_text
     while True:
         try:
-            text_in_image = td.image_to_string(main_frame[y:h, x:w])
+            if square:
+                # Extract the coordinates of the square
+                x1, y1 = square_start
+                x2, y2 = square_end
+
+                # Ensure coordinates are within the bounds of the Square Frame
+                x1, y1 = max(x1, 0), max(y1, 0)
+                x2, y2 = max(x2, 0), max(y2, 0)
+
+                # Extract the region of interest (ROI) from the frame
+                square_frame = main_frame[y1:y2, x1:x2]
+
+                # Perform text detection in the Square Frame
+                text_in_image = td.image_to_string(square_frame)
+            else:
+                text_in_image = td.image_to_string(main_frame[y:h, x:w])
+            
             if text_in_image != "":
                 detected_text = text_in_image
                 print(detected_text)
@@ -288,6 +301,7 @@ def text_detection_function():
              pass
         
 def is_connected():
+    # check for internet connection by Pinging google
     global internet_connection_status
     while True:
         try:
@@ -324,9 +338,12 @@ user_input = ""
 detected_text = ""
 
 def ai_response(user_input):
+    global genai_server_connection
     try:
         model = genai.GenerativeModel('models/gemini-pro')
+        genai_server_connection = True
         response = model.generate_content(user_input).text.replace("*", "")
+        genai_server_connection = False
         return response
     except:
         return "I am sorry, for some reason i am not able to give you an answer"
@@ -360,13 +377,10 @@ def Vinput():
 
 def assistantProgram():
         assistant = pt3.init()
+        assistant.setProperty('rate', 180)  # Speed (words per minute)
         assistant.say('what can i help you')
         assistant.runAndWait()
-        global time
-        global weather
-        global face_detection
-        global caption
-        global rectangle_program
+        global time, weather, face_detection, caption, rectangle_program, square, draw, square_start, square_end
 
         while True:
             user_input = Vinput()
@@ -442,9 +456,13 @@ def assistantProgram():
             elif "detected text" in user_input or\
                  "meaning of this text" in user_input or\
                  "meaning of this detected text" in user_input:
-                    meaning_of_detected_text = str(ai_response("what is the meaning of"+detected_text))
-                    assistant.say("the meaning is"+meaning_of_detected_text)
+                    caption = str(ai_response("Give me an answer in one line: What is this "+detected_text))
+                    print(caption)
+                    square = draw = False
+                    square_start = square_end = (None, None)
+                    assistant.say("in detected text"+caption)
                     assistant.runAndWait()
+                    caption = ""
 
              #rectangle program
             elif "turn on rectangle program" in user_input or\
@@ -462,7 +480,7 @@ def assistantProgram():
                     assistant.runAndWait()
                 
             else:
-                caption = str(ai_response(user_input))
+                caption = str(ai_response("Give me an answer in one line: "+user_input))
                 print(caption)
                 assistant.say(caption)
                 assistant.runAndWait()
