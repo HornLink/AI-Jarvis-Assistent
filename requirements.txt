@@ -6,3 +6,6 @@ requests
 pytesseract
 python-dotenv
 Flask
+cvzone==1.5
+mediapipe==0.10.0
+numpy>=1.19.3
