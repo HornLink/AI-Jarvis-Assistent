@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webView.setWebViewClient(new WebViewClient());
-        webView.loadUrl("http://192.168.225.96:5000");
+        webView.loadUrl("http://192.168.38.213:5000");
     }
 
     @Override
