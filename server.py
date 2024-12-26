@@ -11,10 +11,13 @@ import google.generativeai as genai
 import datetime
 import requests
 from pytesseract import pytesseract as td
+import pygame
 from dotenv import load_dotenv
 import os
 load_dotenv()
 
+# Initialize pygame mixer
+pygame.mixer.init()
 
 # Change this: change this Variables:-
 assistant_Name = "Jarvis" # you can change assistant name as you want
@@ -41,7 +44,7 @@ internet_connection_animation = True
 time = True
 weather = True
 location = True
-# face_detection = True
+# face_detection = True  # (for face detection)
 caption = ""
 rectangle_program = False
 
@@ -120,6 +123,8 @@ def display():
 
     cap = cv2.VideoCapture(camera)
     font = cv2.FONT_ITALIC
+
+    play_sound("Sound-Effects/jarvis-start.mp3")
 
     #Calculation to align item
     def top(percent):
@@ -246,7 +251,7 @@ def display():
             # (for face detection)
             # if face_detection:
             #     try:
-            #         img = cv2.rectangle(frame, (fd_x,fd_y), (fd_x+fd_w, fd_y+fd_h), (255, 0, 0), 2)
+            #         img = cv2.rectangle(frame, (fd_x,fd_y), (fd_x+fd_w, fd_y+fd_h), (255, 0, 0), obj_strok)
             #     except:
             #         pass
 
@@ -371,6 +376,14 @@ def is_connected():
 #             except:
 #                 pass
 
+def play_sound(sound_file):
+    """Play a sound file without blocking"""
+    try:
+        sound = pygame.mixer.Sound(sound_file)
+        sound.play()
+    except Exception as e:
+        print(f"Error playing sound: {e}")
+
 #Asssistant
 
 user_input = ""
@@ -418,9 +431,9 @@ def Vinput():
 def assistantProgram():
         assistant = pt3.init()
         assistant.setProperty('rate', 180)  # Speed (words per minute)
-        assistant.say('what can i help you')
+        assistant.say('at your service sir')
         assistant.runAndWait()
-        global time, weather, face_detection, caption, rectangle_program, square, draw, square_start, square_end
+        global time, weather, caption, rectangle_program, square, draw, square_start, square_end #, face_detection (for face detection)
 
         while True:
             user_input = Vinput()
@@ -500,7 +513,7 @@ def assistantProgram():
                     assistant.say("closing rectangle program")
                     assistant.runAndWait()
 
-             # Generative AI response on user input  
+            # Generative AI response on user input  
             else:
                 caption = str(ai_response("Give me an answer in one line: "+user_input))
                 print(caption)
