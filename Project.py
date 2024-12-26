@@ -11,9 +11,13 @@ import datetime
 import requests
 import webbrowser
 from pytesseract import pytesseract as td
+import pygame
 from dotenv import load_dotenv
 import os
 load_dotenv()
+
+# Initialize pygame mixer
+pygame.mixer.init()
 
 # Change this: change this Variables:-
 assistant_Name = "Jarvis" # you can change assistant name as you want
@@ -54,6 +58,7 @@ genai_server_connection = False
 # graphical public variables
 frame = None
 main_frame = None
+height = width = None
 square_frame = None
 td_x, td_y, td_w, td_h = None, None, None, None
 fd_x, fd_y, fd_w, fd_h = None, None, None, None
@@ -87,15 +92,41 @@ face_cascade = cv2.CascadeClassifier(cascade_path)
 
 #text detection
 td.tesseract_cmd = tesseract_path
+
+def wrap_text(text, max_width, font, font_size, thickness):
+    """Split text into lines that fit within max_width pixels"""
+    words = text.split(' ')
+    lines = []
+    current_line = []
+    
+    for word in words:
+        current_line.append(word)
+        # Get size of current line with test word added
+        line_text = ' '.join(current_line)
+        (line_width, _) = cv2.getTextSize(line_text, font, font_size, thickness)[0]
+        
+        if line_width > max_width:
+            # Remove last word and add current line
+            current_line.pop()
+            lines.append(' '.join(current_line))
+            current_line = [word]
+    
+    # Add final line
+    if current_line:
+        lines.append(' '.join(current_line))
+    
+    return lines[:5]  # Limit to 5 lines maximum
+
      
 def display():
-    global frame, main_frame, square_frame
+    global frame, main_frame, square_frame, height, width
 
     cap = cv2.VideoCapture(camera)
     cv2.namedWindow('frame', cv2.WINDOW_NORMAL)
     cv2.resizeWindow('frame', (1000, 500))
     font = cv2.FONT_ITALIC
 
+    play_sound("Sound-Effects/jarvis-start.mp3")
 
     #Calculation to align item
     def top(percent):
@@ -121,6 +152,7 @@ def display():
 
 
     global x,y,w,h
+    x = None
 
     circle_animation = 0
 
@@ -129,93 +161,109 @@ def display():
     REx = 260
     REy = 260
 
+    obj_size = obj_strok = None
+
     while True:
             success, frame = cap.read()
-            height, width = frame.shape[:2]
+            if height is None:
+                height, width = frame.shape[:2]
             
-            x, y, w, h = left(10), top(20), left(90), top(80)
-            obj_size = 0.5
-            obj_strok = int(obj_size*2)
+            if x is None:
+                x, y, w, h = left(10), top(20), left(90), top(80)
 
-            
-            circle_animation+=1
-            if circle_animation > 28:
-                 circle_animation = 0
+            if obj_strok is None:
+                obj_size = round((width+height)/3000, 1)
+                obj_strok = round(obj_size*2)
 
-            RSx -= 3
-            RSy -= 3
-            REx += 3
-            REy += 3
+            if internet_connection_status:
+                circle_animation+=1
+                if circle_animation > round(obj_size*65):
+                    circle_animation = 0
 
-            if REx > 360:
-                RSx = 260
-                RSy = 260
-                REx = 260
-                REy = 260
+            if rectangle_program:
+                RSx -= 3
+                RSy -= 3
+                REx += 3
+                REy += 3
+
+                if REx > 450:
+                    RSx = 360
+                    RSy = 360
+                    REx = 360
+                    REy = 360
 
             if frame_design:
-                main_frame = cv2.rectangle(frame, (left(10), top(20)), (left(90), top(80)), (255, 0, 0), 1)
-                img = cv2.line(frame, (left(0), top(0)), (left(10), top(20)), (255,0,0), 1)
-                img = cv2.line(frame, (left(100), top(0)), (left(90), top(20)), (255,0,0), 1)
-                img = cv2.line(frame, (left(100), top(100)), (left(90), top(80)), (255,0,0), 1)
-                img = cv2.line(frame, (left(0), top(100)), (left(10), top(80)), (255,0,0), 1)
+                main_frame = cv2.rectangle(frame, (left(10), top(20)), (left(90), top(80)), (255, 255, 255), obj_strok)
+                img = cv2.line(frame, (left(0), top(0)), (left(10), top(20)), (255, 255, 255), obj_strok)
+                img = cv2.line(frame, (left(100), top(0)), (left(90), top(20)), (255, 255, 255), obj_strok)
+                img = cv2.line(frame, (left(100), top(100)), (left(90), top(80)), (255, 255, 255), obj_strok)
+                img = cv2.line(frame, (left(0), top(100)), (left(10), top(80)), (255, 255, 255), obj_strok)
 
-                img = cv2.circle(frame, (left(50),top(50)), 7, (255,0,0), 1)
-                img = cv2.line(frame, (left(48), top(50)), (left(52), top(50)), (255,0,0), 1)
-                img = cv2.line(frame, (left(50), top(48)), (left(50), top(52)), (255,0,0), 1)
+                img = cv2.circle(frame, (left(50),top(50)), round(obj_size*20), (255, 255, 255), obj_strok) 
+                img = cv2.line(frame, (left(48), top(50)), (left(52), top(50)), (255, 255, 255), obj_strok)
+                img = cv2.line(frame, (left(50), top(47)), (left(50), top(53)), (255, 255, 255), obj_strok)
                 
 
             if caption:
-                line1, line2, line3, line4, line5,= caption[0:75], caption[75:150], caption[150:225], caption[300:375], caption[375:450]
-                img = cv2.putText(frame, line1, (left(10), top(85)), font, 0.4, (255,0,0), 1, cv2.LINE_AA)
-                img = cv2.putText(frame, line2, (left(10), top(88)), font, 0.4, (255,0,0), 1, cv2.LINE_AA)
-                img = cv2.putText(frame, line3, (left(10), top(91)), font, 0.4, (255,0,0), 1, cv2.LINE_AA)
-                img = cv2.putText(frame, line4, (left(10), top(94)), font, 0.4, (255,0,0), 1, cv2.LINE_AA)
-                img = cv2.putText(frame, line5, (left(10), top(97)), font, 0.4, (255,0,0), 1, cv2.LINE_AA)
-
+                # Calculate maximum width based on frame size
+                max_text_width = int(width * 0.80)  # Use 80% of frame width
+                
+                # Get wrapped lines
+                lines = wrap_text(caption, max_text_width, font, obj_size, obj_strok)
+                
+                # Draw each line
+                for i, line in enumerate(lines):
+                    y_pos = top(85 + (i * 3))  # Increment y position for each line
+                    img = cv2.putText(frame, line, (left(11), y_pos), font, obj_size, 
+                                     (255,255,255), obj_strok, cv2.LINE_AA)
 
             if mic_animation:
-                img = cv2.rectangle(frame, (left(4), top(69)), (left(7), top(75)), (255, 0, 0), 2)
-                img = cv2.line(img, (left(5.5), top(75)), (left(5.5), top(78)), (255,0,0), 2)
-                img = cv2.line(img, (left(4), top(78)), (left(7), top(78)), (255,0,0), 2)
+                img = cv2.rectangle(frame, (left(4), top(69)), (left(7), top(75)), (255, 255, 255), obj_strok)
+                img = cv2.line(img, (left(5.5), top(75)), (left(5.5), top(78)), (255, 255, 255), obj_strok)
+                img = cv2.line(img, (left(4), top(78)), (left(7), top(78)), (255, 255, 255), obj_strok)
 
             if internet_connection_animation:
-                cv2.circle(img, (left(95), top(30)), 28, (255, 0, 0), 2)
+                cv2.circle(img, (left(95), top(30)), round(obj_size*65), (255, 255, 255), obj_strok)
                 if internet_connection_status:
                     if google_recognize_server_connection:
-                        cv2.circle(img, (left(94), top(32)), 1, (0, 0, 255), 2)
+                        cv2.circle(img, (left(94), top(32)), 1, (0, 0, 255), obj_strok)
                     if genai_server_connection:
-                        cv2.circle(img, (left(96), top(28)), 1, (0, 0, 255), 2)
-                    cv2.circle(img, (left(95), top(30)), circle_animation, (255, 0, 0), 2)
-                    cv2.circle(img, (left(95), top(30)), 1, (255, 0, 0), 2)
+                        cv2.circle(img, (left(96), top(28)), 1, (0, 0, 255), obj_strok)
+                    cv2.circle(img, (left(95), top(30)), circle_animation, (255, 255, 255), obj_strok)
+                    cv2.circle(img, (left(95), top(30)), 1, (255, 255, 255), obj_strok)
                 else:
-                    cv2.putText(frame, "X", (left(92.7), top(33)), font, obj_size*3, (0,0,255), obj_strok*2, cv2.LINE_AA)
+                    cv2.putText(frame, "X", (left(93.3), top(32.5)), font, obj_size*3, (0,0,255), obj_strok, cv2.LINE_AA)     
 
             if location:
-                img = cv2.putText(frame, coordinates, (left(10), top(12)), font, obj_size, (255,0,0), obj_strok, cv2.LINE_AA)
-                img = cv2.putText(frame, loc, (left(10), top(18)), font, obj_size, (255,0,0), obj_strok, cv2.LINE_AA)
+                img = cv2.putText(frame, coordinates, (left(10), top(12)), font, obj_size, (255,255,255), obj_strok, cv2.LINE_AA)
+                img = cv2.putText(frame, loc, (left(10), top(18)), font, obj_size, (255,255,255), obj_strok, cv2.LINE_AA)
 
             if time:
                 current_time = datetime.datetime.now().time().strftime("%I:%M %p")
-                cv2.circle(img, (left(74), top(11)), 13, (255, 0, 0), 1)
-                cv2.line(img, (left(74), top(11)), (left(74), top(9)), (255, 0, 0), 1)
-                cv2.line(img, (left(74), top(11)), (left(75), top(11)), (255, 0, 0), 1)
-                img = cv2.putText(frame, current_time, (left(77), top(12)), font,  obj_size, (255,0,0), obj_strok, cv2.LINE_AA)
+                cv2.circle(img, (left(74), top(11)), round(obj_size*25), (255,255,255), obj_strok)
+                cv2.line(img, (left(74), top(11)), (left(74), top(10)), (255,255,255), obj_strok)
+                cv2.line(img, (left(74), top(11)), (left(74.8), top(11)), (255,255,255), obj_strok)
+                img = cv2.putText(frame, current_time, (left(77), top(12)), font,  obj_size, (255,255,255), obj_strok, cv2.LINE_AA)
 
             if weather:
-                img = cv2.putText(frame, temp, (left(68), top(18)), font, obj_size, (255,0,0), obj_strok, cv2.LINE_AA)
-            
+                img = cv2.putText(frame, temp, (left(73), top(18)), font, obj_size, (255,255,255), obj_strok, cv2.LINE_AA)
+
             if rectangle_program:
-                img = cv2.rectangle(frame, (RSx,RSy), (REx, REy), (255, 0, 0), 2)
+                img = cv2.rectangle(frame, (RSx,RSy), (REx, REy), (255, 255, 255), 2)
 
             if face_detection:
                 try:
-                    img = cv2.rectangle(frame, (fd_x,fd_y), (fd_x+fd_w, fd_y+fd_h), (255, 0, 0), 2)
+                    img = cv2.rectangle(frame, (fd_x,fd_y), (fd_x+fd_w, fd_y+fd_h), (255, 0, 0), obj_strok)
                 except:
                     pass
 
             if square:
-                square_frame = cv2.rectangle(frame, square_start, square_end, (255, 0, 0), 1)
+                square_frame = cv2.rectangle(frame, square_start, square_end, (255, 255, 255), obj_strok)
+
+                #delete square button
+                img = cv2.circle(frame, (left(54), top(9)), round(obj_size*65), (255, 255, 255), obj_strok)
+                img = cv2.putText(frame, "x", (left(51.5), top(12)), font, obj_size*5, (0,0,255), obj_strok, cv2.LINE_AA)
+                img = cv2.putText(frame, "Delete Rectangle", (left(47), top(18)), font, obj_size, (0,0,255), obj_strok, cv2.LINE_AA)
                  
 
             cv2.imshow('frame', frame)
@@ -227,7 +275,7 @@ def display():
     cv2.destroyAllWindows()  
 
 def hand_tracking():
-     global frame, square, draw, square_start, square_end
+     global frame, square, draw, square_start, square_end, detected_text
      while True:
         try:  # Add error handling
             current_frame = frame.copy()  # Create a copy of the frame
@@ -243,29 +291,33 @@ def hand_tracking():
                     # if again thumbTip & indexFingerTip is touched check for is the user trying streach the point of the square
                     if draw:
                         # Bottom-right cornor
-                        if abs(thumbTip[0] - indexFingerTip[0]) < 15 and abs(thumbTip[1] - indexFingerTip[1]) < 15 and abs(square_end[0] - indexFingerTip[0]) < 35 and abs(square_end[1] - indexFingerTip[1]) < 35:
-                            square_end = (indexFingerTip[0] - 15, indexFingerTip[1] - 15)
+                        if abs(thumbTip[0] - indexFingerTip[0]) < 20 and abs(thumbTip[1] - indexFingerTip[1]) < 20 and abs(square_end[0] - indexFingerTip[0]) < 25 and abs(square_end[1] - indexFingerTip[1]) < 25:
+                            square_end = (indexFingerTip[0] - 10, indexFingerTip[1] - 10)
 
                         # Top-left cornor
-                        if abs(thumbTip[0] - indexFingerTip[0]) < 15 and abs(thumbTip[1] - indexFingerTip[1]) < 15 and abs(square_start[0] - indexFingerTip[0]) < 35 and abs(square_start[1] - indexFingerTip[1]) < 35:
-                            square_start = (indexFingerTip[0] + 15, indexFingerTip[1] + 15)
+                        if abs(thumbTip[0] - indexFingerTip[0]) < 20 and abs(thumbTip[1] - indexFingerTip[1]) < 20 and abs(square_start[0] - indexFingerTip[0]) < 25 and abs(square_start[1] - indexFingerTip[1]) < 25:
+                            square_start = (indexFingerTip[0] + 10, indexFingerTip[1] + 10)
 
                         # Top-right cornor
-                        if abs(thumbTip[0] - indexFingerTip[0]) < 15 and abs(thumbTip[1] - indexFingerTip[1]) < 15 and abs(square_end[0] - indexFingerTip[0]) < 35 and abs(square_start[1] - indexFingerTip[1]) < 35:
-                            square_end = (indexFingerTip[0] - 15, square_end[1])
-                            square_start = (square_start[0], indexFingerTip[1] + 15)
+                        if abs(thumbTip[0] - indexFingerTip[0]) < 20 and abs(thumbTip[1] - indexFingerTip[1]) < 20 and abs(square_end[0] - indexFingerTip[0]) < 25 and abs(square_start[1] - indexFingerTip[1]) < 25:
+                            square_end = (indexFingerTip[0] - 10, square_end[1])
+                            square_start = (square_start[0], indexFingerTip[1] + 10)
 
                         # Bottom-left cornor
-                        if abs(thumbTip[0] - indexFingerTip[0]) < 15 and abs(thumbTip[1] - indexFingerTip[1]) < 15 and abs(square_start[0] - indexFingerTip[0]) < 35 and abs(square_end[1] - indexFingerTip[1]) < 35:
-                            square_start = (indexFingerTip[0] + 15, square_start[1])
-                            square_end = (square_end[0], indexFingerTip[1] - 15)
+                        if abs(thumbTip[0] - indexFingerTip[0]) < 20 and abs(thumbTip[1] - indexFingerTip[1]) < 20 and abs(square_start[0] - indexFingerTip[0]) < 25 and abs(square_end[1] - indexFingerTip[1]) < 25:
+                            square_start = (indexFingerTip[0] + 10, square_start[1])
+                            square_end = (square_end[0], indexFingerTip[1] - 10)
+
+                        if indexFingerTip[0] > int(51 * width / 100) and indexFingerTip[0] < int(57 * width / 100) and indexFingerTip[1] > int(8 * height / 100) and indexFingerTip[1] < int(16 * height / 100):
+                            draw = square = False
                             
                     elif not draw:
                         # create square around Tip Touch
-                        if abs(thumbTip[0] - indexFingerTip[0]) < 15 and abs(thumbTip[1] - indexFingerTip[1]) < 15:
+                        if abs(thumbTip[0] - indexFingerTip[0]) < 20 and abs(thumbTip[1] - indexFingerTip[1]) < 20:
                             square = True
-                            square_start = (indexFingerTip[0] - 50, indexFingerTip[1] - 25)
-                            square_end = (indexFingerTip[0] + 50, indexFingerTip[1] + 25)
+                            square_start = (indexFingerTip[0] - 100, indexFingerTip[1] - 25)
+                            square_end = (indexFingerTip[0] + 100, indexFingerTip[1] + 25)
+                        # Fix the square in one place when the user removes fingertip contact.
                         elif square:
                             draw = True
 
@@ -329,10 +381,16 @@ def face_detection_function():
                 pass
 
 
+def play_sound(sound_file):
+    """Play a sound file without blocking"""
+    try:
+        sound = pygame.mixer.Sound(sound_file)
+        sound.play()
+    except Exception as e:
+        print(f"Error playing sound: {e}")
+
 
 #Asssistant
-
-
 
 user_input = ""
 detected_text = ""
@@ -378,7 +436,7 @@ def Vinput():
 def assistantProgram():
         assistant = pt3.init()
         assistant.setProperty('rate', 180)  # Speed (words per minute)
-        assistant.say('what can i help you')
+        assistant.say('at your service sir')
         assistant.runAndWait()
         global time, weather, face_detection, caption, rectangle_program, square, draw, square_start, square_end
 
@@ -479,6 +537,7 @@ def assistantProgram():
                     assistant.say("closing rectangle program")
                     assistant.runAndWait()
                 
+            # Generative AI response on user input  
             else:
                 caption = str(ai_response("Give me an answer in one line: "+user_input))
                 print(caption)
