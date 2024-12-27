@@ -193,15 +193,15 @@ def display():
                     REy = 360
 
             if frame_design:
-                main_frame = cv2.rectangle(frame, (left(10), top(20)), (left(90), top(80)), (255, 255, 255), obj_strok)
-                img = cv2.line(frame, (left(0), top(0)), (left(10), top(20)), (255, 255, 255), obj_strok)
-                img = cv2.line(frame, (left(100), top(0)), (left(90), top(20)), (255, 255, 255), obj_strok)
-                img = cv2.line(frame, (left(100), top(100)), (left(90), top(80)), (255, 255, 255), obj_strok)
-                img = cv2.line(frame, (left(0), top(100)), (left(10), top(80)), (255, 255, 255), obj_strok)
+                main_frame = cv2.rectangle(frame, (left(10), top(20)), (left(90), top(80)), (255, 0, 0), obj_strok)
+                img = cv2.line(frame, (left(0), top(0)), (left(10), top(20)), (255, 0, 0), obj_strok)
+                img = cv2.line(frame, (left(100), top(0)), (left(90), top(20)), (255, 0, 0), obj_strok)
+                img = cv2.line(frame, (left(100), top(100)), (left(90), top(80)), (255, 0, 0), obj_strok)
+                img = cv2.line(frame, (left(0), top(100)), (left(10), top(80)), (255, 0, 0), obj_strok)
 
-                img = cv2.circle(frame, (left(50),top(50)), round(obj_size*20), (255, 255, 255), obj_strok) 
-                img = cv2.line(frame, (left(48), top(50)), (left(52), top(50)), (255, 255, 255), obj_strok)
-                img = cv2.line(frame, (left(50), top(47)), (left(50), top(53)), (255, 255, 255), obj_strok)
+                img = cv2.circle(frame, (left(50),top(50)), round(obj_size*20), (255, 0, 0), obj_strok) 
+                img = cv2.line(frame, (left(48), top(50)), (left(52), top(50)), (255, 0, 0), obj_strok)
+                img = cv2.line(frame, (left(50), top(47)), (left(50), top(53)), (255, 0, 0), obj_strok)
                 
 
             if caption:
@@ -218,38 +218,38 @@ def display():
                                      (255,255,255), obj_strok, cv2.LINE_AA)
 
             if mic_animation:
-                img = cv2.rectangle(frame, (left(4), top(69)), (left(7), top(75)), (255, 255, 255), obj_strok)
-                img = cv2.line(img, (left(5.5), top(75)), (left(5.5), top(78)), (255, 255, 255), obj_strok)
-                img = cv2.line(img, (left(4), top(78)), (left(7), top(78)), (255, 255, 255), obj_strok)
+                img = cv2.rectangle(frame, (left(4), top(69)), (left(7), top(75)), (255, 0, 0), obj_strok)
+                img = cv2.line(img, (left(5.5), top(75)), (left(5.5), top(78)), (255, 0, 0), obj_strok)
+                img = cv2.line(img, (left(4), top(78)), (left(7), top(78)), (255, 0, 0), obj_strok)
 
             if internet_connection_animation:
-                cv2.circle(img, (left(95), top(30)), round(obj_size*65), (255, 255, 255), obj_strok)
+                cv2.circle(img, (left(95), top(30)), round(obj_size*65), (255, 0, 0), obj_strok)
                 if internet_connection_status:
                     if google_recognize_server_connection:
                         cv2.circle(img, (left(94), top(32)), 1, (0, 0, 255), obj_strok)
                     if genai_server_connection:
                         cv2.circle(img, (left(96), top(28)), 1, (0, 0, 255), obj_strok)
-                    cv2.circle(img, (left(95), top(30)), circle_animation, (255, 255, 255), obj_strok)
-                    cv2.circle(img, (left(95), top(30)), 1, (255, 255, 255), obj_strok)
+                    cv2.circle(img, (left(95), top(30)), circle_animation, (255, 0, 0), obj_strok)
+                    cv2.circle(img, (left(95), top(30)), 1, (255, 0, 0), obj_strok)
                 else:
                     cv2.putText(frame, "X", (left(93.3), top(32.5)), font, obj_size*3, (0,0,255), obj_strok, cv2.LINE_AA)     
 
             if location:
-                img = cv2.putText(frame, coordinates, (left(10), top(12)), font, obj_size, (255,255,255), obj_strok, cv2.LINE_AA)
-                img = cv2.putText(frame, loc, (left(10), top(18)), font, obj_size, (255,255,255), obj_strok, cv2.LINE_AA)
+                img = cv2.putText(frame, coordinates, (left(10), top(12)), font, obj_size, (255, 0, 0), obj_strok, cv2.LINE_AA)
+                img = cv2.putText(frame, loc, (left(10), top(18)), font, obj_size, (255, 0, 0), obj_strok, cv2.LINE_AA)
 
             if time:
                 current_time = datetime.datetime.now().time().strftime("%I:%M %p")
-                cv2.circle(img, (left(74), top(11)), round(obj_size*25), (255,255,255), obj_strok)
-                cv2.line(img, (left(74), top(11)), (left(74), top(10)), (255,255,255), obj_strok)
-                cv2.line(img, (left(74), top(11)), (left(74.8), top(11)), (255,255,255), obj_strok)
-                img = cv2.putText(frame, current_time, (left(77), top(12)), font,  obj_size, (255,255,255), obj_strok, cv2.LINE_AA)
+                cv2.circle(img, (left(74), top(11)), round(obj_size*25), (255, 0, 0), obj_strok)
+                cv2.line(img, (left(74), top(11)), (left(74), top(10)), (255, 0, 0), obj_strok)
+                cv2.line(img, (left(74), top(11)), (left(74.8), top(11)), (255, 0, 0), obj_strok)
+                img = cv2.putText(frame, current_time, (left(77), top(12)), font,  obj_size, (255, 0, 0), obj_strok, cv2.LINE_AA)
 
             if weather:
-                img = cv2.putText(frame, temp, (left(73), top(18)), font, obj_size, (255,255,255), obj_strok, cv2.LINE_AA)
+                img = cv2.putText(frame, temp, (left(73), top(18)), font, obj_size, (255, 0, 0), obj_strok, cv2.LINE_AA)
 
             if rectangle_program:
-                img = cv2.rectangle(frame, (RSx,RSy), (REx, REy), (255, 255, 255), 2)
+                img = cv2.rectangle(frame, (RSx,RSy), (REx, REy), (255, 0, 0), 2)
 
             if face_detection:
                 try:
@@ -258,10 +258,10 @@ def display():
                     pass
 
             if square:
-                square_frame = cv2.rectangle(frame, square_start, square_end, (255, 255, 255), obj_strok)
+                square_frame = cv2.rectangle(frame, square_start, square_end, (255, 225, 225), obj_strok)
 
                 #delete square button
-                img = cv2.circle(frame, (left(54), top(9)), round(obj_size*65), (255, 255, 255), obj_strok)
+                img = cv2.circle(frame, (left(54), top(9)), round(obj_size*65), (0, 0, 255), obj_strok)
                 img = cv2.putText(frame, "x", (left(51.5), top(12)), font, obj_size*5, (0,0,255), obj_strok, cv2.LINE_AA)
                 img = cv2.putText(frame, "Delete Rectangle", (left(47), top(18)), font, obj_size, (0,0,255), obj_strok, cv2.LINE_AA)
                  
