@@ -414,9 +414,10 @@ def Vinput():
             R = sr.Recognizer()
             with sr.Microphone(1) as source:
                 google_recognize_server_connection = True
-                value = R.recognize_google(R.listen(source))
-                google_recognize_server_connection = False
+                listen = R.listen(source)
                 mic_animation = False
+                value = R.recognize_google(listen)
+                google_recognize_server_connection = False
                 return value
 
         except sr.UnknownValueError:
