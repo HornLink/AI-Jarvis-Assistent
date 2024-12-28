@@ -288,23 +288,28 @@ def hand_tracking():
                         # Bottom-right cornor
                         if abs(thumbTip[0] - indexFingerTip[0]) < 20 and abs(thumbTip[1] - indexFingerTip[1]) < 20 and abs(square_end[0] - indexFingerTip[0]) < 25 and abs(square_end[1] - indexFingerTip[1]) < 25:
                             square_end = (indexFingerTip[0] - 10, indexFingerTip[1] - 10)
+                            play_sound("Sound-Effects/selection.mp3")
 
                         # Top-left cornor
                         if abs(thumbTip[0] - indexFingerTip[0]) < 20 and abs(thumbTip[1] - indexFingerTip[1]) < 20 and abs(square_start[0] - indexFingerTip[0]) < 25 and abs(square_start[1] - indexFingerTip[1]) < 25:
                             square_start = (indexFingerTip[0] + 10, indexFingerTip[1] + 10)
+                            play_sound("Sound-Effects/selection.mp3")
 
                         # Top-right cornor
                         if abs(thumbTip[0] - indexFingerTip[0]) < 20 and abs(thumbTip[1] - indexFingerTip[1]) < 20 and abs(square_end[0] - indexFingerTip[0]) < 25 and abs(square_start[1] - indexFingerTip[1]) < 25:
                             square_end = (indexFingerTip[0] - 10, square_end[1])
                             square_start = (square_start[0], indexFingerTip[1] + 10)
+                            play_sound("Sound-Effects/selection.mp3")
 
                         # Bottom-left cornor
                         if abs(thumbTip[0] - indexFingerTip[0]) < 20 and abs(thumbTip[1] - indexFingerTip[1]) < 20 and abs(square_start[0] - indexFingerTip[0]) < 25 and abs(square_end[1] - indexFingerTip[1]) < 25:
                             square_start = (indexFingerTip[0] + 10, square_start[1])
                             square_end = (square_end[0], indexFingerTip[1] - 10)
+                            play_sound("Sound-Effects/selection.mp3")
 
                         if indexFingerTip[0] > int(51 * width / 100) and indexFingerTip[0] < int(57 * width / 100) and indexFingerTip[1] > int(8 * height / 100) and indexFingerTip[1] < int(16 * height / 100):
                             draw = square = False
+                            play_sound("Sound-Effects/delete_button.mp3")
                             
                     elif not draw:
                         # create square around Tip Touch
@@ -312,6 +317,7 @@ def hand_tracking():
                             square = True
                             square_start = (indexFingerTip[0] - 100, indexFingerTip[1] - 25)
                             square_end = (indexFingerTip[0] + 100, indexFingerTip[1] + 25)
+                            play_sound("Sound-Effects/selection.mp3")
                         # Fix the square in one place when the user removes fingertip contact.
                         elif square:
                             draw = True
