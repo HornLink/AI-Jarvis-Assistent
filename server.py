@@ -398,7 +398,7 @@ detected_text = ""
 def ai_response(user_input):
     global genai_server_connection
     try:   
-        model = genai.GenerativeModel('models/gemini-pro')
+        model = genai.GenerativeModel('models/gemini-1.5-flash')
         genai_server_connection = True
         response = model.generate_content(user_input).text.replace("*", "")
         genai_server_connection = False
