@@ -2,6 +2,8 @@
 
 The Augmented Reality Assistant is a virtual assistant inspired by JARVIS from Iron Man. Developed using Python, OpenCV, Google's Generative AI (Gemini), and Tesseract OCR, this project provides a real-time, interactive assistant with a range of functionalities.
 
+https://github.com/user-attachments/assets/f1aa5e8c-6246-4ed2-ac6b-9ab57b0639c9
+
 ## Features
 
 <table>
